@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 @NoArgsConstructor
 @Getter
 public class ApiException {
-    private  String message;
+    private String message;
     private HttpStatus httpStatus;
 
 

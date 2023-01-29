@@ -6,6 +6,8 @@ import ewha.gsd.midubang.DAO.RedisDao;
 
 import ewha.gsd.midubang.dto.AccountDto;
 import ewha.gsd.midubang.dto.Message;
+import ewha.gsd.midubang.exception.BadRequestException;
+import ewha.gsd.midubang.exception.NotFoundException;
 import ewha.gsd.midubang.jwt.TokenDTO;
 
 import ewha.gsd.midubang.entity.Member;
@@ -22,6 +24,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
 import javax.transaction.Transactional;
 
 @Service
@@ -123,6 +127,24 @@ public class MemberService {
         }
         memberRepository.save(member);
         return new Message(HttpStatus.OK, "회원가입 성공");
+    }
+
+    public TokenDTO login (AccountDto accountDto) throws JsonProcessingException {
+        String email = accountDto.getEmail();
+        // 가입 여부 확인
+        if (!memberRepository.existsByEmail(email)) {
+            //throw new ResponseStatusException(HttpStatus.NOT_FOUND, "가입하지 않은 계정입니다.");
+            throw new NotFoundException("가입하지 않은 계정입니다.");
+        }
+        // 비밀번호 확인
+        Member member = memberRepository.findByEmail(email);
+        if (!passwordEncoder.matches(accountDto.getPassword(), member.getPassword())) {
+            //throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "비밀번호가 일치하지 않습니다.");
+            throw new BadRequestException("비밀번호가 일치하지 않습니다.");
+        }
+        // 토큰 반환
+        TokenDTO token = joinJwtToken(email);
+        return token;
     }
 
 

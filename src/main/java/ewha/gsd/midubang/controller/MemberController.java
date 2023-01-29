@@ -6,6 +6,8 @@ import ewha.gsd.midubang.dto.AccountDto;
 import ewha.gsd.midubang.dto.Message;
 import ewha.gsd.midubang.entity.Member;
 import ewha.gsd.midubang.exception.ApiRequestException;
+import ewha.gsd.midubang.exception.BadRequestException;
+import ewha.gsd.midubang.exception.NotFoundException;
 import ewha.gsd.midubang.jwt.KakaoToken;
 import ewha.gsd.midubang.jwt.TokenDTO;
 import ewha.gsd.midubang.dto.response.newRefreshTokenResponse;
@@ -62,13 +64,21 @@ public class MemberController {
 
     /* 로그인 */
     @GetMapping("/login")
-    public ResponseEntity<TokenDTO> login(@RequestBody AccountDto accountDto) throws JsonProcessingException{
-        String email = accountDto.getEmail();
-        if (!memberRepository.existsByEmail(email))
-            throw new ApiRequestException("존재하지 않는 계정입니다.");
+    public ResponseEntity<?> login(@RequestBody AccountDto accountDto) throws JsonProcessingException{
+        return ResponseEntity.ok(memberService.login(accountDto));
+    }
 
-        TokenDTO tokenDTO = memberService.joinJwtToken(email);
-        return ResponseEntity.ok(tokenDTO);
+    // Error
+    @ExceptionHandler
+    public ResponseEntity<Message> handleBadRequestException(BadRequestException e) {
+        Message message = new Message(HttpStatus.BAD_REQUEST, e.getMessage());
+        return ResponseEntity.badRequest().body(message);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<Message> handleNotFoundException(NotFoundException e) {
+        Message message = new Message(HttpStatus.NOT_FOUND, e.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
     }
 
 }
