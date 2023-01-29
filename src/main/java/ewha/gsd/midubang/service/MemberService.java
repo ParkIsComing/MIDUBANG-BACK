@@ -117,17 +117,11 @@ public class MemberService {
                 bCryptPasswordEncoder.encode(accountDto.getPassword())
         );
 
-        Message message = new Message();
-        if (!memberRepository.existsByEmail(email)) {
-            memberRepository.save(member);
-            message.setStatus(HttpStatus.OK);
-            message.setMessage("회원가입 성공");
+        if (memberRepository.existsByEmail(email)) {
+            throw new ApiRequestException("이미 존재하는 계정입니다.");
         }
-        else {
-            message.setStatus(HttpStatus.BAD_REQUEST);
-            message.setMessage("이미 존재하는 계정입니다.");
-        }
-        return message;
+        memberRepository.save(member);
+        return new Message(HttpStatus.OK, "회원가입 성공");
     }
 
 

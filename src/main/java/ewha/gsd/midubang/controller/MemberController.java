@@ -57,11 +57,7 @@ public class MemberController {
     /* 회원가입 */
     @PostMapping("/signup")
     public ResponseEntity<Message> signup(AccountDto accountDto) {
-        Message message = memberService.signup(accountDto);
-        if (message.getStatus() == HttpStatus.OK)
-            return ResponseEntity.ok(message);
-        else
-            return ResponseEntity.badRequest().body(message);
+        return ResponseEntity.ok(memberService.signup(accountDto));
     }
 
     /* 로그인 */

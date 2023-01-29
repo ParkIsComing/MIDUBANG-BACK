@@ -1,5 +1,6 @@
 package ewha.gsd.midubang.dto;
 
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
 
@@ -7,4 +8,9 @@ import org.springframework.http.HttpStatus;
 public class Message {
     private HttpStatus status;
     private String message;
+
+    public Message(HttpStatus status, String message) {
+        this.status = status;
+        this.message = message;
+    }
 }
