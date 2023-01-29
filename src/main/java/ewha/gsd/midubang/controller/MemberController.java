@@ -25,10 +25,8 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class MemberController {
 
-    @Autowired
-    private MemberService memberService;
-    @Autowired
-    private KakaoService kakaoService;
+    private final MemberService memberService;
+    private final KakaoService kakaoService;
     private final MemberRepository memberRepository;
 
     @PostMapping("/login/oauth/kakao")
@@ -58,13 +56,13 @@ public class MemberController {
 
     /* 회원가입 */
     @PostMapping("/signup")
-    public ResponseEntity<Message> signup(AccountDto accountDto) {
+    public ResponseEntity<Message> signup(@RequestBody AccountDto accountDto) {
         return ResponseEntity.ok(memberService.signup(accountDto));
     }
 
     /* 로그인 */
     @GetMapping("/login")
-    public ResponseEntity<TokenDTO> login(AccountDto accountDto) throws JsonProcessingException{
+    public ResponseEntity<TokenDTO> login(@RequestBody AccountDto accountDto) throws JsonProcessingException{
         String email = accountDto.getEmail();
         if (!memberRepository.existsByEmail(email))
             throw new ApiRequestException("존재하지 않는 계정입니다.");

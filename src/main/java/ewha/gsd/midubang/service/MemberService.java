@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
@@ -29,11 +30,11 @@ import javax.transaction.Transactional;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final TokenProvider tokenProvider;
-    private  final RedisDao redisDao;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final RedisDao redisDao;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;
-    
+
 
     @Transactional
     public TokenDTO joinJwtToken(String email) throws JsonProcessingException {
@@ -108,12 +109,13 @@ public class MemberService {
         return null;
     }
 
+    @Transactional
     /* 회원 가입 */
     public Message signup (AccountDto accountDto) {
         String email = accountDto.getEmail();
         Member member = new Member(
                 email,
-                bCryptPasswordEncoder.encode(accountDto.getPassword())
+                passwordEncoder.encode(accountDto.getPassword())
         );
 
         if (memberRepository.existsByEmail(email)) {

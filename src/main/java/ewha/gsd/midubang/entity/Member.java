@@ -13,12 +13,11 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long member_id;
 
-    @Column(length = 30, unique = true)
+    @Column(length = 50, unique = true)
     private String email;
 
-    @Column(length = 20)
+    @Column(length = 200)
     private String password; // null for kakao login
-
 
     @Builder
     public Member(String email, String password){
