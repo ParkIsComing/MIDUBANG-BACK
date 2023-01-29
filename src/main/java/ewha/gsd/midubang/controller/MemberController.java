@@ -26,7 +26,7 @@ public class MemberController {
     private KakaoService kakaoService;
 
 
-    @GetMapping("/login/oauth/kakao")
+    @PostMapping("/login/oauth/kakao")
     public ResponseEntity<TokenDTO> login(@RequestParam("code") String code) throws JsonProcessingException {
         log.info(code);
         KakaoToken oauthToken = kakaoService.getAccessToken(code);
@@ -37,13 +37,14 @@ public class MemberController {
         return ResponseEntity.ok(jwtToken);
     }
 
-    //인증코드 받기 테스트
+    //인증코드 받기 테스트용
     @GetMapping("/login/oauth2/code/kakao")
     public String KakaoCode(@RequestParam("code") String code) {
         return "카카오 로그인 인증완료, code: " + code;
     }
 
-    @PutMapping("/refresh/{email:.+}")
+    //access token 재발급
+    @GetMapping("/refresh/{email:.+}")
     public ResponseEntity<newRefreshTokenResponse> refreshToken(@PathVariable(name="email") String email, @RequestHeader("refreshToken") String refreshToken) throws JsonProcessingException {
         TokenDTO tokenDTO = memberService.validRefreshToken(email, refreshToken);
         newRefreshTokenResponse token = new newRefreshTokenResponse(tokenDTO.getAccessToken(), tokenDTO.getRefreshToken());

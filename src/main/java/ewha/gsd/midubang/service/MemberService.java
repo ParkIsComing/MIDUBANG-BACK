@@ -76,6 +76,10 @@ public class MemberService {
     public  TokenDTO validRefreshToken(String email, String refreshToken) throws JsonProcessingException {
         Member member = memberRepository.findByEmail(email);
 
+        if(member==null){
+            throw new ApiRequestException("가입되지 않은 이메일입니다.");
+        }
+
         String checkedRefreshToken = isSameRefreshToken(member, refreshToken);
 
         //refresh token이 valid하면 accessToken 값이 들어감
@@ -83,7 +87,7 @@ public class MemberService {
 
         if(accessToken!=null){
             return new TokenDTO("bearer",accessToken, ACCESS_TOKEN_EXPIRE_TIME, refreshToken);
-        }
+        }//아니면 access,refresh 다 재생성
         else{
             TokenDTO tokenDTO = tokenProvider.createToken(member.getMember_id(), member.getEmail());
             return tokenDTO;
@@ -91,6 +95,8 @@ public class MemberService {
     }
 
     public String isSameRefreshToken(Member member,String refreshToken){
+        log.info(String.valueOf(member));
+        log.info(refreshToken);
         String redisRefreshToken = redisDao.getValues(member.getEmail());
         if(redisRefreshToken.equals(refreshToken)){
             return refreshToken;
