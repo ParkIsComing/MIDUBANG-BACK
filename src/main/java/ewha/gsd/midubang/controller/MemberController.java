@@ -2,6 +2,8 @@ package ewha.gsd.midubang.controller;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import ewha.gsd.midubang.dto.AccountDto;
+import ewha.gsd.midubang.dto.Message;
 import ewha.gsd.midubang.entity.Member;
 import ewha.gsd.midubang.jwt.KakaoToken;
 import ewha.gsd.midubang.jwt.TokenDTO;
@@ -11,6 +13,7 @@ import ewha.gsd.midubang.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,6 +51,23 @@ public class MemberController {
         TokenDTO tokenDTO = memberService.validRefreshToken(email, refreshToken);
         newRefreshTokenResponse token = new newRefreshTokenResponse(tokenDTO.getAccessToken(), tokenDTO.getRefreshToken());
         return ResponseEntity.ok(token);
+    }
+
+    /* 회원가입 */
+    @PostMapping("/signup")
+    public ResponseEntity<Message> signup(AccountDto accountDto) {
+        Message message = memberService.signup(accountDto);
+        if (message.getStatus() == HttpStatus.OK)
+            return ResponseEntity.ok(message);
+        else
+            return ResponseEntity.badRequest().body(message);
+    }
+
+    /* 로그인 */
+    @GetMapping("/login")
+    public ResponseEntity<TokenDTO> login(AccountDto accountDto) throws JsonProcessingException{
+        TokenDTO tokenDTO = memberService.joinJwtToken(accountDto.getEmail());
+        return ResponseEntity.ok(tokenDTO);
     }
 
 }

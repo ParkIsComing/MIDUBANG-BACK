@@ -4,6 +4,8 @@ package ewha.gsd.midubang.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ewha.gsd.midubang.DAO.RedisDao;
 
+import ewha.gsd.midubang.dto.AccountDto;
+import ewha.gsd.midubang.dto.Message;
 import ewha.gsd.midubang.jwt.TokenDTO;
 
 import ewha.gsd.midubang.entity.Member;
@@ -15,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
@@ -26,6 +30,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final TokenProvider tokenProvider;
     private  final RedisDao redisDao;
+    private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;
 
@@ -97,5 +102,27 @@ public class MemberService {
         }
         return null;
     }
+
+    /* 회원 가입 */
+    public Message signup (AccountDto accountDto) {
+        String email = accountDto.getEmail();
+        Member member = new Member(
+                email,
+                bCryptPasswordEncoder.encode(accountDto.getPassword())
+        );
+
+        Message message = new Message();
+        if (!memberRepository.existsByEmail(email)) {
+            memberRepository.save(member);
+            message.setStatus(HttpStatus.OK);
+            message.setMessage("회원가입 성공");
+        }
+        else {
+            message.setStatus(HttpStatus.BAD_REQUEST);
+            message.setMessage("이미 존재하는 계정입니다.");
+        }
+        return message;
+    }
+
 
 }
