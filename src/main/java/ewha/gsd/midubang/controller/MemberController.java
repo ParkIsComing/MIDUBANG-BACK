@@ -5,9 +5,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import ewha.gsd.midubang.dto.AccountDto;
 import ewha.gsd.midubang.dto.Message;
 import ewha.gsd.midubang.entity.Member;
+import ewha.gsd.midubang.exception.ApiRequestException;
 import ewha.gsd.midubang.jwt.KakaoToken;
 import ewha.gsd.midubang.jwt.TokenDTO;
 import ewha.gsd.midubang.dto.response.newRefreshTokenResponse;
+import ewha.gsd.midubang.repository.MemberRepository;
 import ewha.gsd.midubang.service.KakaoService;
 import ewha.gsd.midubang.service.MemberService;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +29,7 @@ public class MemberController {
     private MemberService memberService;
     @Autowired
     private KakaoService kakaoService;
-
+    private final MemberRepository memberRepository;
 
     @PostMapping("/login/oauth/kakao")
     public ResponseEntity<TokenDTO> login(@RequestParam("code") String code) throws JsonProcessingException {
@@ -63,7 +65,11 @@ public class MemberController {
     /* 로그인 */
     @GetMapping("/login")
     public ResponseEntity<TokenDTO> login(AccountDto accountDto) throws JsonProcessingException{
-        TokenDTO tokenDTO = memberService.joinJwtToken(accountDto.getEmail());
+        String email = accountDto.getEmail();
+        if (!memberRepository.existsByEmail(email))
+            throw new ApiRequestException("존재하지 않는 계정입니다.");
+
+        TokenDTO tokenDTO = memberService.joinJwtToken(email);
         return ResponseEntity.ok(tokenDTO);
     }
 

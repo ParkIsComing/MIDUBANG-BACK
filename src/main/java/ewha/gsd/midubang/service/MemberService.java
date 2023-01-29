@@ -33,8 +33,7 @@ public class MemberService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30;
-
-
+    
 
     @Transactional
     public TokenDTO joinJwtToken(String email) throws JsonProcessingException {
