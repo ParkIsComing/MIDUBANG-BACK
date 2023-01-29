@@ -9,25 +9,22 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @RequiredArgsConstructor
-public class SecurityConfig {
+@EnableWebSecurity
+public class SecurityConfig{
 
     private final CorsConfig config;
     private final MemberRepository memberRepository;
     private final MemberService memberService;
-
-    /* [DB] password 암호화 */
-    @Bean
-    public BCryptPasswordEncoder encoder() {
-        return new BCryptPasswordEncoder();
-    }
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -67,5 +64,8 @@ public class SecurityConfig {
                     .addFilter(new JwtAuthorizationFilter(authenticationManager, memberRepository, memberService));
 
         }
+
+
+
     }
 }

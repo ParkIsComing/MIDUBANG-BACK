@@ -27,6 +27,9 @@ dependencies {
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
+	// m1 MacOS
+	implementation 'io.netty:netty-resolver-dns-native-macos:4.1.68.Final:osx-aarch_64'
+
 	//mariadb
 	implementation 'org.mariadb.jdbc:mariadb-java-client:3.0.4'
 

@@ -7,7 +7,7 @@ spring:
     jpa:
         database-platform: org.hibernate.dialect.MariaDB103Dialect
         hibernate:
-            ddl-auto: update
+            ddl-auto: create-drop
         format_sql: 'true'
         show-sql: 'false'
 
