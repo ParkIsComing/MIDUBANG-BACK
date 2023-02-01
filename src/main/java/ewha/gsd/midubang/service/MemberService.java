@@ -115,7 +115,7 @@ public class MemberService {
 
     @Transactional
     /* 회원 가입 */
-    public Message signup (AccountDto accountDto) {
+    public TokenDTO signup (AccountDto accountDto) throws JsonProcessingException {
         String email = accountDto.getEmail();
         Member member = new Member(
                 email,
@@ -126,7 +126,10 @@ public class MemberService {
             throw new ApiRequestException("이미 존재하는 계정입니다.");
         }
         memberRepository.save(member);
-        return new Message(HttpStatus.OK, "회원가입 성공");
+
+        // 토큰 반환
+        TokenDTO token = joinJwtToken(email);
+        return token;
     }
 
     public TokenDTO login (AccountDto accountDto) throws JsonProcessingException {

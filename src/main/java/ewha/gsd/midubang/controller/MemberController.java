@@ -58,13 +58,13 @@ public class MemberController {
 
     /* 회원가입 */
     @PostMapping("/signup")
-    public ResponseEntity<Message> signup(@RequestBody AccountDto accountDto) {
+    public ResponseEntity<TokenDTO> signup(@RequestBody AccountDto accountDto) throws JsonProcessingException {
         return ResponseEntity.ok(memberService.signup(accountDto));
     }
 
     /* 로그인 */
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AccountDto accountDto) throws JsonProcessingException{
+    public ResponseEntity<TokenDTO> login(@RequestBody AccountDto accountDto) throws JsonProcessingException{
         return ResponseEntity.ok(memberService.login(accountDto));
     }
 
