@@ -63,7 +63,7 @@ public class MemberController {
     }
 
     /* 로그인 */
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AccountDto accountDto) throws JsonProcessingException{
         return ResponseEntity.ok(memberService.login(accountDto));
     }
