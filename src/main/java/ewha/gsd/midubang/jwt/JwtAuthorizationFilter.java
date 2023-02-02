@@ -25,21 +25,22 @@ import java.io.IOException;
 public class JwtAuthorizationFilter  extends BasicAuthenticationFilter {
     private MemberRepository memberRepository;
     private TokenProvider tokenProvider;
-    private MemberService memberService;
     private CustomUserDetailsService customUserDetailsService;
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
 
 
-    public JwtAuthorizationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository, MemberService memberService){
+    public JwtAuthorizationFilter(AuthenticationManager authenticationManager, MemberRepository memberRepository, TokenProvider tokenProvider, CustomUserDetailsService customUserDetailsService){
         super(authenticationManager);
         this.memberRepository = memberRepository;
-        this.memberService = memberService;
+        this.tokenProvider = tokenProvider;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws ServletException, IOException {
         String jwt = resolveToken(request);
+
 
         if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)){
             String email = tokenProvider.getEmailFromToken(jwt);

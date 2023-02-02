@@ -5,7 +5,12 @@ package ewha.gsd.midubang.jwt;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ewha.gsd.midubang.DAO.RedisDao;
 
+import ewha.gsd.midubang.dto.UserInfoDto;
+import ewha.gsd.midubang.entity.Member;
+import ewha.gsd.midubang.exception.ApiRequestException;
+import ewha.gsd.midubang.exception.BadRequestException;
 import ewha.gsd.midubang.exception.OAuth2AuthenticationProcessingException;
+import ewha.gsd.midubang.repository.MemberRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 
@@ -14,28 +19,39 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
+import org.springframework.stereotype.Service;
+
+
+import javax.annotation.PostConstruct;
+import javax.servlet.http.HttpServletRequest;
 import java.security.Key;
-import java.time.Duration;
 import java.util.Date;
 
-@Component
+@Service
 @Slf4j
+@RequiredArgsConstructor
 public class TokenProvider {
-    private static final String BEARER_TYPE = "bearer";
+
+    private  final  MemberRepository memberRepository;
+
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_TYPE = "Bearer";
     private static final long ACCESS_TOKEN_EXPIRE_TIME = 1000 * 60 * 30; //30분 유지
     private static final long REFRESH_TOKEN_EXPIRE_TIME = 1000 * 60 * 60 *  24; //1일 유지
 
+    private  Key key;
 
-    private final Key key;
-    @Autowired
-    private RedisDao redisDao;
+    private final RedisDao redisDao;
+
+    @Value("${jwt.secret}")
+    private String secretKey;
 
 
-    public TokenProvider(@Value("${jwt.secret}") String secretKey) {
+    @PostConstruct
+    public void init(){
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        this.key = Keys.hmacShaKeyFor(keyBytes);
+        key = Keys.hmacShaKeyFor(keyBytes);
     }
 
     //토큰 생성
@@ -61,12 +77,9 @@ public class TokenProvider {
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
 
-        log.info("refresh token : "+refreshToken);
-        log.info("email:" +email);
 
         redisDao.setValues(email, refreshToken);
 
-        log.info(redisDao.getValues(email));
 
         return TokenDTO.builder()
                 .grantType(BEARER_TYPE)
@@ -74,6 +87,35 @@ public class TokenProvider {
                 .tokenExpiresIn(accessTokenExpiresIn.getTime())
                 .refreshToken(refreshToken)
                 .build();
+    }
+
+
+    public UserInfoDto getUserInfoByRequest(HttpServletRequest request){
+        String token = resolveToken(request);
+        if(validateTokenForUserInfo(token)){
+            Long member_id = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get("id", Long.class);
+            Member member = memberRepository.findById(member_id).get();
+            return new UserInfoDto(member);
+        }
+        else{
+            return null;
+        }
+
+    }
+
+    public String resolveToken(HttpServletRequest request){
+        String bearerToken  = request.getHeader("Authorization");
+        String token = bearerToken.substring(7);
+        return token;
+    }
+
+    public boolean validateTokenForUserInfo(String token){
+        try{
+            Jws<Claims> claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            return !claims.getBody().getExpiration().before(new Date());
+        }catch (Exception e){
+            return false;
+        }
     }
 
     //access token 재발급
@@ -130,21 +172,23 @@ public class TokenProvider {
 
     }
 
-    public boolean validateToken(String token) {
+    public boolean validateToken(String token){
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (MalformedJwtException e) { // 유효하지 않은 JWT
             throw new OAuth2AuthenticationProcessingException("not valid jwt");
         } catch (io.jsonwebtoken.ExpiredJwtException e) { // 만료된 JWT
-            throw new OAuth2AuthenticationProcessingException("expired jwt");
+            throw new OAuth2AuthenticationProcessingException("만료된 토큰");
         } catch (io.jsonwebtoken.UnsupportedJwtException e) { // 지원하지 않는 JWT
             throw new OAuth2AuthenticationProcessingException("unsupported jwt");
         } catch (IllegalArgumentException e) { // 빈값
-            throw new OAuth2AuthenticationProcessingException("empty jwt");
+            throw new ApiRequestException("empty jwt");
         }
 
     }
+
+
 
     public String getEmailFromToken(String token){
         Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();

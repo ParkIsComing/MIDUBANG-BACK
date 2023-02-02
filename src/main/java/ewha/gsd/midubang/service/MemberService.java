@@ -62,7 +62,7 @@ public class MemberService {
 
             //refresh token이 유효한 경우
             if(accessToken!=null){
-                return new TokenDTO("bearer",accessToken, ACCESS_TOKEN_EXPIRE_TIME, refreshToken);
+                return new TokenDTO("Bearer",accessToken, ACCESS_TOKEN_EXPIRE_TIME, refreshToken);
             }
             else{ //accessToken이 무효(return null)하면 새로운 access, refresh token 생성
                 TokenDTO new_tokenDTO = tokenProvider.createToken(member.getMember_id(), member.getEmail());
@@ -73,18 +73,8 @@ public class MemberService {
 
     }
 
-//    public UserInfoDto getUserInfoByToken(HttpServletRequest request){
-//        String token = tokenProvider.resolveToken(request);
-//        Long id = tokenProvider.getIdFromToken(token);
-//        if(tokenProvider.validateToken(token)){
-//            Member member = memberRepository.findById(id).get();
-//            return new UserInfoDto(member);
-//        }
-//        else{
-//            return null;
-//        }
-//
-//    }
+
+
     @Transactional
     public String validAccessToken(String accessToken){
         String email =tokenProvider.validateAccessToken(accessToken);
@@ -110,7 +100,7 @@ public class MemberService {
         String accessToken = tokenProvider.validateRefreshToken(checkedRefreshToken);
 
         if(accessToken!=null){
-            return new TokenDTO("bearer",accessToken, ACCESS_TOKEN_EXPIRE_TIME, refreshToken);
+            return new TokenDTO("Bearer",accessToken, ACCESS_TOKEN_EXPIRE_TIME, refreshToken);
         }//아니면 access,refresh 다 재생성
         else{
             TokenDTO tokenDTO = tokenProvider.createToken(member.getMember_id(), member.getEmail());

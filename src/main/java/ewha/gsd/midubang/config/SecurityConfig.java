@@ -2,7 +2,9 @@ package ewha.gsd.midubang.config;
 
 import ewha.gsd.midubang.jwt.JwtAuthenticationFilter;
 import ewha.gsd.midubang.jwt.JwtAuthorizationFilter;
+import ewha.gsd.midubang.jwt.TokenProvider;
 import ewha.gsd.midubang.repository.MemberRepository;
+import ewha.gsd.midubang.service.CustomUserDetailsService;
 import ewha.gsd.midubang.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -25,6 +27,9 @@ public class SecurityConfig{
     private final CorsConfig config;
     private final MemberRepository memberRepository;
     private final MemberService memberService;
+    private final TokenProvider tokenProvider;
+
+    private final CustomUserDetailsService customUserDetailsService;
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -61,7 +66,7 @@ public class SecurityConfig{
             http
                     .addFilter(config.corsFilter())
                     .addFilter(new JwtAuthenticationFilter(authenticationManager, memberService))
-                    .addFilter(new JwtAuthorizationFilter(authenticationManager, memberRepository, memberService));
+                    .addFilter(new JwtAuthorizationFilter(authenticationManager, memberRepository, tokenProvider, customUserDetailsService));
 
         }
 

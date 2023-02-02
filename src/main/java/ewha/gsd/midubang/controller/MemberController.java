@@ -4,6 +4,7 @@ package ewha.gsd.midubang.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import ewha.gsd.midubang.dto.AccountDto;
 import ewha.gsd.midubang.dto.Message;
+import ewha.gsd.midubang.dto.UserInfoDto;
 import ewha.gsd.midubang.entity.Member;
 import ewha.gsd.midubang.exception.ApiRequestException;
 import ewha.gsd.midubang.exception.BadRequestException;
@@ -11,6 +12,7 @@ import ewha.gsd.midubang.exception.NotFoundException;
 import ewha.gsd.midubang.jwt.KakaoToken;
 import ewha.gsd.midubang.jwt.TokenDTO;
 import ewha.gsd.midubang.dto.response.newRefreshTokenResponse;
+import ewha.gsd.midubang.jwt.TokenProvider;
 import ewha.gsd.midubang.repository.MemberRepository;
 import ewha.gsd.midubang.service.KakaoService;
 import ewha.gsd.midubang.service.MemberService;
@@ -21,6 +23,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/member")
@@ -30,6 +34,7 @@ public class MemberController {
     private final MemberService memberService;
     private final KakaoService kakaoService;
     private final MemberRepository memberRepository;
+    private  final TokenProvider tokenProvider;
 
     @PostMapping("/login/oauth/kakao")
     public ResponseEntity<TokenDTO> login(@RequestParam("code") String code) throws JsonProcessingException {
@@ -49,8 +54,9 @@ public class MemberController {
     }
 
     //access token 재발급
-    @GetMapping("/refresh/{email:.+}")
-    public ResponseEntity<newRefreshTokenResponse> refreshToken(@PathVariable(name="email") String email, @RequestHeader("refreshToken") String refreshToken) throws JsonProcessingException {
+    @GetMapping("/refresh")
+    public ResponseEntity<newRefreshTokenResponse> refreshToken(HttpServletRequest request, @RequestHeader("refreshToken") String refreshToken) throws JsonProcessingException {
+        String email = tokenProvider.getUserInfoByRequest(request).getEmail();
         TokenDTO tokenDTO = memberService.validRefreshToken(email, refreshToken);
         newRefreshTokenResponse token = new newRefreshTokenResponse(tokenDTO.getAccessToken(), tokenDTO.getRefreshToken());
         return ResponseEntity.ok(token);
