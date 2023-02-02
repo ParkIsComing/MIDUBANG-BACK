@@ -6,6 +6,7 @@ import ewha.gsd.midubang.DAO.RedisDao;
 
 import ewha.gsd.midubang.dto.AccountDto;
 import ewha.gsd.midubang.dto.Message;
+import ewha.gsd.midubang.dto.UserInfoDto;
 import ewha.gsd.midubang.exception.BadRequestException;
 import ewha.gsd.midubang.exception.NotFoundException;
 import ewha.gsd.midubang.jwt.TokenDTO;
@@ -26,6 +27,7 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.transaction.Transactional;
 
 @Service
@@ -70,6 +72,19 @@ public class MemberService {
 
 
     }
+
+//    public UserInfoDto getUserInfoByToken(HttpServletRequest request){
+//        String token = tokenProvider.resolveToken(request);
+//        Long id = tokenProvider.getIdFromToken(token);
+//        if(tokenProvider.validateToken(token)){
+//            Member member = memberRepository.findById(id).get();
+//            return new UserInfoDto(member);
+//        }
+//        else{
+//            return null;
+//        }
+//
+//    }
     @Transactional
     public String validAccessToken(String accessToken){
         String email =tokenProvider.validateAccessToken(accessToken);
