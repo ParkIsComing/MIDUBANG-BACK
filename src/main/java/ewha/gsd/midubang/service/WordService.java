@@ -32,6 +32,9 @@ public class WordService {
         Member member = memberRepository.findById(member_id).orElseThrow(()-> new ApiRequestException("user not found"));
         if(!wordRepository.exitsInMyDict(member_id, word_id)){
             Word word = wordRepository.findWordById(word_id);
+            if(word==null){
+                throw new ApiRequestException("존재하지 않는 단어 id");
+            }
             MemberWord memberWord = MemberWord.builder()
                     .member(member)
                     .word(word)

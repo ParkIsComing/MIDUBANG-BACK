@@ -27,8 +27,11 @@ import org.springframework.security.oauth2.client.registration.InMemoryClientReg
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+import java.io.IOException;
 
 @Service
 @Slf4j
@@ -43,7 +46,7 @@ public class MemberService {
 
 
     @Transactional
-    public TokenDTO joinJwtToken(String email) throws JsonProcessingException {
+    public TokenDTO joinJwtToken(String email) throws IOException, ServletException {
         Member member = memberRepository.findByEmail(email);
         String refreshToken = redisDao.getValues(email);
         log.info(String.valueOf(member.getMember_id()), member.getEmail());
@@ -87,40 +90,36 @@ public class MemberService {
 
 
     @Transactional
-    public  TokenDTO validRefreshToken(String email, String refreshToken) throws JsonProcessingException {
-        Member member = memberRepository.findByEmail(email);
+    public  TokenDTO validRefreshToken(String refreshToken, HttpServletResponse response) throws IOException, ServletException {
+        UserInfoDto userInfoDto = tokenProvider.getUserInfoByRequestForReissue(refreshToken, response);
 
-        if(member==null){
-            throw new ApiRequestException("가입되지 않은 이메일입니다.");
+        log.info("96 : " + userInfoDto);
+        //refresh token의 유효기간이 아직 만료되지 않았으면 새로 생성한 accessToken 값이 들어감
+        if(isSameRefreshToken(userInfoDto, refreshToken)){
+            String accessToken = tokenProvider.reissueAccessToken(userInfoDto.getMember_id(), userInfoDto.getEmail());
+            if(accessToken!=null){
+                return new TokenDTO("Bearer",accessToken, ACCESS_TOKEN_EXPIRE_TIME, refreshToken);
+            }
         }
 
-        String checkedRefreshToken = isSameRefreshToken(member, refreshToken);
 
-        //refresh token이 valid하면 accessToken 값이 들어감
-        String accessToken = tokenProvider.validateRefreshToken(checkedRefreshToken);
-
-        if(accessToken!=null){
-            return new TokenDTO("Bearer",accessToken, ACCESS_TOKEN_EXPIRE_TIME, refreshToken);
-        }//아니면 access,refresh 다 재생성
-        else{
-            TokenDTO tokenDTO = tokenProvider.createToken(member.getMember_id(), member.getEmail());
-            return tokenDTO;
-        }
+        return null;
     }
 
-    public String isSameRefreshToken(Member member,String refreshToken){
-        log.info(String.valueOf(member));
-        log.info(refreshToken);
-        String redisRefreshToken = redisDao.getValues(member.getEmail());
+    public boolean isSameRefreshToken(UserInfoDto userInfoDto,String refreshToken){
+        log.info("userinfo : "+ userInfoDto);
+        String redisRefreshToken = redisDao.getValues(userInfoDto.getEmail());
         if(redisRefreshToken.equals(refreshToken)){
-            return refreshToken;
+            return true;
+        }else{
+            throw new ApiRequestException("unvalid refresh token");
         }
-        return null;
+
     }
 
     @Transactional
     /* 회원 가입 */
-    public TokenDTO signup (AccountDto accountDto) throws JsonProcessingException {
+    public TokenDTO signup (AccountDto accountDto, HttpServletResponse response) throws IOException, ServletException {
         String email = accountDto.getEmail();
         Member member = new Member(
                 email,
@@ -137,7 +136,7 @@ public class MemberService {
         return token;
     }
 
-    public TokenDTO login (AccountDto accountDto) throws JsonProcessingException {
+    public TokenDTO login (AccountDto accountDto, HttpServletResponse response) throws IOException, ServletException {
         String email = accountDto.getEmail();
         // 가입 여부 확인
         if (!memberRepository.existsByEmail(email)) {

@@ -1,5 +1,6 @@
 package ewha.gsd.midubang.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import ewha.gsd.midubang.jwt.JwtAuthenticationFilter;
 import ewha.gsd.midubang.jwt.JwtAuthorizationFilter;
 import ewha.gsd.midubang.jwt.TokenProvider;
@@ -31,10 +32,12 @@ public class SecurityConfig{
 
     private final CustomUserDetailsService customUserDetailsService;
 
+    private final ObjectMapper objectMapper;
+
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web -> web.ignoring()
-                .antMatchers( "/api/member/login/**","/refresh/**")) ;
+                .antMatchers( "/api/member/login/**","/api/member/signup/**","/api/member/refresh/**")) ;
 
     }
     @Bean
@@ -50,7 +53,7 @@ public class SecurityConfig{
 
                 .and()
                 .authorizeRequests()
-                .antMatchers("/api/member/**","/api/word/**","/api/analyze/**").permitAll()
+                .antMatchers("/api/word/**","/api/analyze/**").permitAll()
                 .anyRequest().permitAll()
 
                 .and()
@@ -66,7 +69,7 @@ public class SecurityConfig{
             http
                     .addFilter(config.corsFilter())
                     .addFilter(new JwtAuthenticationFilter(authenticationManager, memberService))
-                    .addFilter(new JwtAuthorizationFilter(authenticationManager, memberRepository, tokenProvider, customUserDetailsService));
+                    .addFilter(new JwtAuthorizationFilter(authenticationManager, memberRepository, tokenProvider, customUserDetailsService, objectMapper));
 
         }
 

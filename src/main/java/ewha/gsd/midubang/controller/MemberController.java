@@ -23,7 +23,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,7 +40,7 @@ public class MemberController {
     private  final TokenProvider tokenProvider;
 
     @PostMapping("/login/oauth/kakao")
-    public ResponseEntity<TokenDTO> login(@RequestParam("code") String code) throws JsonProcessingException {
+    public ResponseEntity<TokenDTO> login(@RequestParam("code") String code) throws IOException, ServletException {
         log.info(code);
         KakaoToken oauthToken = kakaoService.getAccessToken(code);
         Member saved_member = kakaoService.saveUser(oauthToken.getAccess_token());
@@ -55,23 +58,25 @@ public class MemberController {
 
     //access token 재발급
     @GetMapping("/refresh")
-    public ResponseEntity<newRefreshTokenResponse> refreshToken(HttpServletRequest request, @RequestHeader("refreshToken") String refreshToken) throws JsonProcessingException {
-        String email = tokenProvider.getUserInfoByRequest(request).getEmail();
-        TokenDTO tokenDTO = memberService.validRefreshToken(email, refreshToken);
+    public ResponseEntity<newRefreshTokenResponse> refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+
+        String refreshToken = tokenProvider.resolveToken(request);
+        log.info("resolved token : " + refreshToken);
+        TokenDTO tokenDTO = memberService.validRefreshToken(refreshToken, response);
         newRefreshTokenResponse token = new newRefreshTokenResponse(tokenDTO.getAccessToken(), tokenDTO.getRefreshToken());
         return ResponseEntity.ok(token);
     }
 
     /* 회원가입 */
     @PostMapping("/signup")
-    public ResponseEntity<TokenDTO> signup(@RequestBody AccountDto accountDto) throws JsonProcessingException {
-        return ResponseEntity.ok(memberService.signup(accountDto));
+    public ResponseEntity<TokenDTO> signup(@RequestBody AccountDto accountDto, HttpServletResponse response) throws ServletException, IOException {
+        return ResponseEntity.ok(memberService.signup(accountDto,response));
     }
 
     /* 로그인 */
     @PostMapping("/login")
-    public ResponseEntity<TokenDTO> login(@RequestBody AccountDto accountDto) throws JsonProcessingException{
-        return ResponseEntity.ok(memberService.login(accountDto));
+    public ResponseEntity<TokenDTO> login(@RequestBody AccountDto accountDto, HttpServletResponse response) throws IOException, ServletException {
+        return ResponseEntity.ok(memberService.login(accountDto,response));
     }
 
     // Error
