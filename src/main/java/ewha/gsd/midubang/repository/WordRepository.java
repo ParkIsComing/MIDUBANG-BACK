@@ -1,5 +1,6 @@
 package ewha.gsd.midubang.repository;
 
+import ewha.gsd.midubang.dto.response.WordDto;
 import ewha.gsd.midubang.entity.MemberWord;
 import ewha.gsd.midubang.entity.Word;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,8 @@ import static ewha.gsd.midubang.entity.QWord.*;
 public class WordRepository {
     private final EntityManager em;
     JPAQueryFactory queryFactory;
+
+
 
     public boolean exitsInMyDict(Long member_id, Long word_id){
         queryFactory = new JPAQueryFactory(em);
@@ -47,17 +50,16 @@ public class WordRepository {
                 .execute();
     }
 
-    public Page<Word> findAll(Long member_id, Pageable pageable){
+    public Page<MemberWord> findAll(Long member_id, Pageable pageable){
         queryFactory = new JPAQueryFactory(em);
-        List<Word> findAllWords = queryFactory.selectFrom(word1)
-//                .join(word1.memberWordList, memberWord)
-//                .fetchJoin()
-                .leftJoin(word1.memberWordList, memberWord)
+        List<MemberWord> findAllWords = queryFactory.selectFrom(memberWord)
+                .leftJoin(memberWord.word, word1)
                 .where(memberWord.member.member_id.eq(member_id))
-                .orderBy(memberWord.id.desc())
+                .orderBy(memberWord.word_date.desc())
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();
+
 
         return PageableExecutionUtils.getPage(findAllWords, pageable, findAllWords::size);
 

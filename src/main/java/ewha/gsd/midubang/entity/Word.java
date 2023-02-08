@@ -1,9 +1,11 @@
 package ewha.gsd.midubang.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -22,13 +24,16 @@ public class Word {
     @Column(columnDefinition = "TEXT")
     private String meaning;
 
+
+
     @OneToMany(mappedBy = "word")
     private List<MemberWord> memberWordList = new ArrayList<MemberWord>();
 
     @Builder
-    public  Word(String word, String meaning){
+    public  Word(String word, String meaning, List<MemberWord> memberWordList){
         this.word = word;
         this.meaning = meaning;
+        this.memberWordList = memberWordList;
     }
 
 }

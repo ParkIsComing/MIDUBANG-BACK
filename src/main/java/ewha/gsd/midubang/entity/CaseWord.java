@@ -19,11 +19,11 @@ public class CaseWord {
 
 
     @ManyToOne
-    @JoinColumn(referencedColumnName = "case_id")
+    @JoinColumn(name = "case_id", referencedColumnName = "case_id")
     private Case aCase;
 
     @ManyToOne
-    @JoinColumn(referencedColumnName = "word_id")
+    @JoinColumn(name = "word_id",referencedColumnName = "word_id")
     private Word word;
 
 

@@ -1,11 +1,15 @@
 package ewha.gsd.midubang.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name="member")
 @NoArgsConstructor
 public class Member {
@@ -18,6 +22,12 @@ public class Member {
 
     @Column(length = 200)
     private String password; // null for kakao login
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "member")
+    private List<Record> recordList = new ArrayList<>();
+
+
 
     @Builder
     public Member(String email, String password){
