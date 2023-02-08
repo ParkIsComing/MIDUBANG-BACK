@@ -20,7 +20,6 @@ public class Case {
     @Column(name="case_id")
     private Long id;
 
-
     private String desc;
     private String article_url;
 

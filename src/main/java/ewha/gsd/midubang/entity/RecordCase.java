@@ -17,17 +17,23 @@ public class RecordCase {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(referencedColumnName = "record_id")
+    @JoinColumn(name = "record_id",referencedColumnName = "record_id")
     private Record record;
 
     @ManyToOne
-    @JoinColumn(referencedColumnName = "case_id")
+    @JoinColumn(name="case_id", referencedColumnName = "case_id")
     private Case aCase;
 
+    @Column(name = "case_exists")
+    private Boolean case_exists;
+
+
+
     @Builder
-    public RecordCase(Record record, Case aCase){
+    public RecordCase(Record record, Case aCase, Boolean case_exists){
         this.record = record;
         this.aCase = aCase;
+        this.case_exists = case_exists;
     }
 
 

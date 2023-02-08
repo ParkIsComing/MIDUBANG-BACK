@@ -16,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,9 +36,12 @@ public class WordService {
             if(word==null){
                 throw new ApiRequestException("존재하지 않는 단어 id");
             }
+
+            LocalDate currentDate = LocalDate.now();
             MemberWord memberWord = MemberWord.builder()
                     .member(member)
                     .word(word)
+                    .word_date(currentDate)
                     .build();
 
             memberWordRepository.save(memberWord);
@@ -54,8 +58,8 @@ public class WordService {
     }
 
     public MyWordListDto getWordList(Long member_id, Pageable pageable){
-        Page<Word> allWords  = wordRepository.findAll(member_id, pageable);
-        List<Word> words = allWords.getContent();
+        Page<MemberWord> allWords  = wordRepository.findAll(member_id, pageable);
+        List<MemberWord> words = allWords.getContent();
         List<WordDto> collect = words.stream()
                 .map(t->new WordDto(t))
                 .collect(Collectors.toList());
